@@ -2,18 +2,39 @@ const express = require('express');
 const router = express.Router();
 const { Student } = require('../models');
 const { body, validationResult } = require('express-validator');
+
 // Route 1: Read all students
 router.get('/', (req, res) => {
-   Student.findAll().then((student) => {
-      res.send(student);
-   });
+   try {
+      Student.findAll().then((student) => {
+         res.json({
+            status: true,
+            data: student,
+         });
+      });
+   } catch (errors) {
+      res.status(500).json({
+         status: false,
+         errors,
+      });
+   }
 });
 
 // Route 2: Read one student
 router.get('/:id', (req, res) => {
-   Student.findOne({ where: { id: req.params.id } }).then((student) => {
-      res.send(student);
-   });
+   try {
+      Student.findOne({ where: { id: req.params.id } }).then((student) => {
+         res.json({
+            status: true,
+            data: student,
+         });
+      });
+   } catch (errors) {
+      res.status(500).json({
+         status: false,
+         errors,
+      });
+   }
 });
 
 // Route 3: Create one student
@@ -53,15 +74,21 @@ router.post(
          .isLength({ max: 50 })
          .withMessage('must be less than 50 characters'),
    ],
-   (req, res) => {
+   async (req, res) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-         return res.status(422).json({ errors: errors.array() });
+         return res.status(400).json({ status: false, errors: errors.array() });
       }
 
       try {
          let body = req.body;
-
+         let user = await Student.findOne({ where: { email: body.email } });
+         if (user !== null) {
+            return res.status(400).json({
+               status: false,
+               errors: 'user with same email already exists',
+            });
+         }
          Student.create(body).then((student) => ({
             first_name: student.first_name,
             last_name: student.last_name,
@@ -72,8 +99,12 @@ router.post(
          }));
       } catch (error) {
          console.log(error);
+         res.status(400).json({
+            status: false,
+            errors: error,
+         });
       }
-      res.send('Student created successfully');
+      res.json({ status: true, msg: 'Student created successfully' });
    }
 );
 
@@ -82,12 +113,12 @@ router.put(
    '/:id',
    [
       // validation
-      body('f_name')
+      body('first_name')
          .isLength({ min: 3 })
          .withMessage('must be at least 3 characters')
          .isAlpha()
          .withMessage('First name must be alphabetic'),
-      body('l_name')
+      body('last_name')
          .optional()
          .isLength({ min: 2 })
          .withMessage('must be at least 2 characters')
@@ -114,14 +145,22 @@ router.put(
          .isLength({ max: 50 })
          .withMessage('must be less than 50 characters'),
    ],
-   (req, res) => {
+   async (req, res) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-         return res.status(422).json({ errors: errors.array() });
+         return res.status(400).json({ status: false, errors: errors.array() });
       }
       try {
          let body = req.body;
-         Student.Update(body, { where: { id: req.params.id } }).then(
+         let user = await Student.findAll({ where: { email: body.email } });
+         if (user.length > 1) {
+            return res.status(400).json({
+               status: false,
+               errors: 'user with same email already exists',
+            });
+         }
+
+         Student.update(body, { where: { id: req.params.id } }).then(
             (student) => ({
                first_name: student.first_name,
                last_name: student.last_name,
@@ -141,9 +180,17 @@ router.put(
 // Route 5: Delete one student
 router.delete('/:id', (req, res) => {
    const id = req.params.id;
-   Student.destroy({ where: { id: id } }).then(
-      res.send('Student deleted successfully')
-   );
+   try {
+      Student.destroy({ where: { id: id } }).then(
+         res.json({ status: true, msg: 'Student deleted successfully' })
+      );
+   } catch (error) {
+      console.log(error);
+      res.status(400).json({
+         status: false,
+         errors: error,
+      });
+   }
 });
 
 module.exports = router;
