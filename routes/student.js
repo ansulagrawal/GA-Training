@@ -1,27 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const { Student } = require('../models');
 const { body, validationResult } = require('express-validator');
-
 // Route 1: Read all students
 router.get('/', (req, res) => {
-   db.query('SELECT * FROM student', (err, rows) => {
-      if (err) {
-         console.log(err);
-      }
-      res.json(rows);
+   Student.findAll().then((student) => {
+      res.send(student);
    });
 });
 
 // Route 2: Read one student
 router.get('/:id', (req, res) => {
-   const id = req.params.id || req.query.id;
-
-   db.query(`SELECT * FROM student where id = ?`, [id], (err, rows) => {
-      if (err) {
-         console.log(err);
-      }
-      res.json(rows);
+   Student.findOne({ where: { id: req.params.id } }).then((student) => {
+      res.send(student);
    });
 });
 
@@ -30,12 +21,12 @@ router.post(
    '/',
    [
       // validation
-      body('f_name')
+      body('first_name')
          .isLength({ min: 3 })
          .withMessage('must be at least 3 characters')
          .isAlpha()
          .withMessage('First name must be alphabetic'),
-      body('l_name')
+      body('last_name')
          .optional()
          .isLength({ min: 2 })
          .withMessage('must be at least 2 characters')
@@ -63,37 +54,26 @@ router.post(
          .withMessage('must be less than 50 characters'),
    ],
    (req, res) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+         return res.status(422).json({ errors: errors.array() });
+      }
+
       try {
-         const { f_name, l_name, email, mobile, dob, address } = req.body;
-         const errors = validationResult(req);
-         if (!errors.isEmpty()) {
-            return res.status(400).json({
-               errors: errors.array(),
-            });
-         }
-         const sqlQuerry =
-            ' INSERT INTO student(first_name, last_name, mobile, email, dob, address) VALUES(?, ?, ?, ?, ?, ?) ';
-         db.query(
-            sqlQuerry,
-            [f_name, l_name, mobile, email, dob, address],
-            (err) => {
-               let error = '';
-               if (err) {
-                  for (var k in err) {
-                     if (k == 'sqlMessage') error = err[k];
-                  }
-                  res.status(500).send({
-                     error: 'Insert failed!',
-                     sqlErrorMessage: error,
-                  });
-               } else {
-                  res.json('Value inserted');
-               }
-            }
-         );
+         let body = req.body;
+
+         Student.create(body).then((student) => ({
+            first_name: student.first_name,
+            last_name: student.last_name,
+            email: student.email,
+            mobile: student.mobile,
+            dob: student.dob,
+            address: student.address,
+         }));
       } catch (error) {
          console.log(error);
       }
+      res.send('Student created successfully');
    }
 );
 
@@ -135,42 +115,35 @@ router.put(
          .withMessage('must be less than 50 characters'),
    ],
    (req, res) => {
-      const { id, f_name, l_name, email, mobile, dob, address } = req.body;
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-         return res.status(400).json({
-            errors: errors.array(),
-         });
+         return res.status(422).json({ errors: errors.array() });
       }
-      let sql =
-         'UPDATE student set first_name = ?, last_name = ?, mobile = ?, email = ?, dob = ?, address=? where id = ?';
-      db.query(
-         sql,
-         [f_name, l_name, mobile, email, dob, address, id],
-         (err) => {
-            if (err) {
-               console.log(err);
-               res.status(500).send({
-                  error: 'Update failed!',
-               });
-            } else {
-               res.json('Value updated successfully');
-            }
-         }
-      );
+      try {
+         let body = req.body;
+         Student.Update(body, { where: { id: req.params.id } }).then(
+            (student) => ({
+               first_name: student.first_name,
+               last_name: student.last_name,
+               email: student.email,
+               mobile: student.mobile,
+               dob: student.dob,
+               address: student.address,
+            })
+         );
+      } catch (error) {
+         console.log(errors);
+      }
+      res.send('Student updated successfully');
    }
 );
 
 // Route 5: Delete one student
 router.delete('/:id', (req, res) => {
    const id = req.params.id;
-   db.query('DELETE FROM student WHERE id = ?', [id], (err) => {
-      if (err) {
-         console.log(err);
-      } else {
-         res.json('Value deleted successfully');
-      }
-   });
+   Student.destroy({ where: { id: id } }).then(
+      res.send('Student deleted successfully')
+   );
 });
 
 module.exports = router;
