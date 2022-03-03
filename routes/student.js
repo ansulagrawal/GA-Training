@@ -82,6 +82,8 @@ router.post(
 
       try {
          let body = req.body;
+
+         // Check if email already exists
          let user = await Student.findOne({ where: { email: body.email } });
          if (user !== null) {
             return res.status(400).json({
@@ -89,6 +91,18 @@ router.post(
                errors: 'user with same email already exists',
             });
          }
+         //  Check if First Name already exists
+         user = await Student.findOne({
+            where: { first_name: body.first_name },
+         });
+         if (user !== null) {
+            return res.status(400).json({
+               status: false,
+               errors: 'user with same first name already exists',
+            });
+         }
+
+         // Create new user
          Student.create(body).then((student) => ({
             first_name: student.first_name,
             last_name: student.last_name,
