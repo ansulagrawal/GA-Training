@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Student } = require('../models');
 const { body, validationResult } = require('express-validator');
+const { Op } = require('sequelize');
 
 // Route 1: Read all students
 router.get('/', (req, res) => {
@@ -83,34 +84,34 @@ router.post(
       try {
          let body = req.body;
 
-         // Check if email already exists
-         let user = await Student.findOne({ where: { email: body.email } });
-         if (user !== null) {
-            return res.status(400).json({
-               status: false,
-               errors: 'user with same email already exists',
-            });
+         // Function to check if email or First Name already exists:
+         function handleCheck(req, res, data) {
+            if (data.length === 0) {
+               console.log('Put data', data, body);
+               Student.create(body).then(
+                  res.json({
+                     status: true,
+                     msg: 'Student created successfully',
+                  })
+               );
+            } else {
+               res.status(400).json({
+                  status: false,
+                  error: 'Student name or email already exists!',
+               });
+            }
          }
-         //  Check if First Name already exists
-         user = await Student.findOne({
-            where: { first_name: body.first_name },
+         //
+         Student.findAll({
+            where: {
+               [Op.or]: [
+                  { email: body.email },
+                  { first_name: body.first_name },
+               ],
+            },
+         }).then((data) => {
+            handleCheck(req, res, data);
          });
-         if (user !== null) {
-            return res.status(400).json({
-               status: false,
-               errors: 'user with same first name already exists',
-            });
-         }
-
-         // Create new user
-         Student.create(body).then((student) => ({
-            first_name: student.first_name,
-            last_name: student.last_name,
-            email: student.email,
-            mobile: student.mobile,
-            dob: student.dob,
-            address: student.address,
-         }));
       } catch (error) {
          console.log(error);
          res.status(400).json({
@@ -118,7 +119,6 @@ router.post(
             errors: error,
          });
       }
-      res.json({ status: true, msg: 'Student created successfully' });
    }
 );
 
@@ -166,28 +166,27 @@ router.put(
       }
       try {
          let body = req.body;
-         let user = await Student.findAll({ where: { email: body.email } });
-         if (user.length > 1) {
-            return res.status(400).json({
-               status: false,
-               errors: 'user with same email already exists',
-            });
-         }
-
-         Student.update(body, { where: { id: req.params.id } }).then(
-            (student) => ({
-               first_name: student.first_name,
-               last_name: student.last_name,
-               email: student.email,
-               mobile: student.mobile,
-               dob: student.dob,
-               address: student.address,
-            })
-         );
+         Student.findAll({
+            where: {
+               [Op.and]: [
+                  { id: req.params.id },
+                  { [Op.not]: [{ email: body.email }] },
+               ],
+            },
+         }).then((data) => {
+            if (data.length > 0) {
+               return res.status(400).json({
+                  status: false,
+                  errors: 'user with same email already exists',
+               });
+            } else {
+               Student.update(body, { where: { id: req.params.id } });
+               res.json({ status: true, msg: 'Student updated successfully' });
+            }
+         });
       } catch (error) {
          console.log(errors);
       }
-      res.send('Student updated successfully');
    }
 );
 
