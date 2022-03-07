@@ -2,39 +2,45 @@ const express = require('express');
 const router = express.Router();
 const { Student } = require('../models');
 const { body, validationResult } = require('express-validator');
-const { Op } = require('sequelize');
+const fs = require('fs');
+const csv = require('csv-parser');
+const csvWriter = require('../db');
+let results = [];
 
 // Route 1: Read all students
 router.get('/', (req, res) => {
    try {
-      Student.findAll().then((student) => {
-         res.json({
-            status: true,
-            data: student,
-         });
-      });
-   } catch (errors) {
-      res.status(500).json({
-         status: false,
-         errors,
-      });
+      results = [];
+      fs.createReadStream('./data/Student.csv')
+         .pipe(csv())
+         .on('data', (row) => results.push(row))
+         .on('end', () => res.send(results));
+   } catch (err) {
+      console.error(err);
+      res.send(err);
    }
 });
 
 // Route 2: Read one student
 router.get('/:id', (req, res) => {
    try {
-      Student.findOne({ where: { id: req.params.id } }).then((student) => {
-         res.json({
-            status: true,
-            data: student,
+      results = [];
+      fs.createReadStream('./data/Student.csv')
+         .pipe(csv())
+         .on('data', (row) => results.push(row))
+         .on('end', () => {
+            for (let i = 0; i < results.length; i++) {
+               if (results[i].id == req.params.id) {
+                  res.send(results[i]);
+                  return;
+               }
+            }
+            results = [];
+            res.status(400).send('Student not found');
          });
-      });
-   } catch (errors) {
-      res.status(500).json({
-         status: false,
-         errors,
-      });
+   } catch (err) {
+      console.error(err);
+      res.send(err);
    }
 });
 
@@ -78,46 +84,51 @@ router.post(
    async (req, res) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-         return res.status(400).json({ status: false, errors: errors.array() });
+         return res.status(400).send({ status: false, errors: errors.array() });
       }
-
       try {
          let body = req.body;
+         results = [];
+         await fs
+            .createReadStream('./data/Student.csv')
+            .pipe(csv())
+            .on('data', (row) => results.push(row))
+            .on('end', () => {
+               for (let i = 0; i < results.length; i++) {
+                  if (
+                     results[i].email == body.email ||
+                     results[i].mobile == body.mobile
+                  ) {
+                     res.status(400).send({
+                        status: false,
+                        message:
+                           'User already exists with this  email or mobile',
+                     });
+                     return;
+                  }
+               }
+               results = [
+                  {
+                     id: results.length + 1,
+                     first_name: body.first_name,
+                     last_name: body.last_name,
+                     email: body.email,
+                     mobile: body.mobile,
+                     dob: body.dob,
+                     address: body.address,
+                  },
+               ];
 
-         // Function to check if email or First Name already exists:
-         function handleCheck(req, res, data) {
-            if (data.length === 0) {
-               console.log('Put data', data, body);
-               Student.create(body).then(
-                  res.json({
+               csvWriter.writeRecords(results).then(() => {
+                  res.send({
                      status: true,
-                     msg: 'Student created successfully',
-                  })
-               );
-            } else {
-               res.status(400).json({
-                  status: false,
-                  error: 'Student name or email already exists!',
+                     msg: 'User creation was successful',
+                  });
                });
-            }
-         }
-         //
-         Student.findAll({
-            where: {
-               [Op.or]: [
-                  { email: body.email },
-                  { first_name: body.first_name },
-               ],
-            },
-         }).then((data) => {
-            handleCheck(req, res, data);
-         });
-      } catch (error) {
-         console.log(error);
-         res.status(400).json({
-            status: false,
-            errors: error,
-         });
+            });
+      } catch (err) {
+         console.log(err);
+         res.send(err);
       }
    }
 );
@@ -165,25 +176,26 @@ router.put(
          return res.status(400).json({ status: false, errors: errors.array() });
       }
       try {
+         results = [];
          let body = req.body;
-         Student.findAll({
-            where: {
-               [Op.and]: [
-                  { id: req.params.id },
-                  { [Op.not]: [{ email: body.email }] },
-               ],
-            },
-         }).then((data) => {
-            if (data.length > 0) {
-               return res.status(400).json({
-                  status: false,
-                  errors: 'user with same email already exists',
-               });
-            } else {
-               Student.update(body, { where: { id: req.params.id } });
-               res.json({ status: true, msg: 'Student updated successfully' });
-            }
-         });
+         await fs
+            .createReadStream('./data/Student.csv')
+            .pipe(csv())
+            .on('data', (row) => {
+               const user = {
+                  id: req.params.id,
+                  first_name: body.first_name,
+                  last_name: body.last_name,
+                  email: body.email,
+                  mobile: body.mobile,
+                  dob: body.dob,
+                  address: body.address,
+               };
+               results.push(user);
+            })
+            .on('end', () => {
+               res.send(results);
+            });
       } catch (error) {
          console.log(errors);
       }
