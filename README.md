@@ -1,3 +1,3 @@
 # GA-Training
 
-This is a traing project of Node JS.
+This is a training project given by the company.
