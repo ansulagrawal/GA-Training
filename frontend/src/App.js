@@ -1,20 +1,21 @@
 import React, { Component } from 'react';
+import Student from './components/Student';
 
-export class App extends Component {
-   render() {
-      return <div className='App'></div>;
-   }
-}
-
-export default App;
-
-// Functional component
-// import React from 'react'
-
-// const App = () => {
-//   return (
-//     <div>App</div>
-//   )
+// export class App extends Component {
+//    render() {
+//      return <div className='App'>
+//      </div>;
+//    }
 // }
 
-// export default App
+// Functional component
+
+const App = () => {
+   return (
+      <div className='App'>
+         <Student />
+      </div>
+   );
+};
+
+export default App;
