@@ -10,18 +10,26 @@ router.get('/', (req, res) => {
    try {
       log.info('try function is called');
       Student.findAll().then((student) => {
-         log.info('student is found');
-         res.json({
-            status: true,
-            data: student,
-         });
+         if (student) {
+            log.info('Users is found');
+            res.json({
+               status: true,
+               data: student,
+            });
+         } else {
+            log.warn('No users are found in the database');
+            res.json({
+               status: false,
+               errors: 'No users are found in the database',
+            });
+         }
       });
    } catch (errors) {
       log.warn('catch function is called');
-      log.error(errors);
-      res.status(500).json({
+      log.error({ errors });
+      res.status(400).json({
          status: false,
-         errors,
+         errors: 'Internal Server Error',
       });
    }
 });
@@ -32,18 +40,26 @@ router.get('/:id', (req, res) => {
    try {
       log.info('try function is called');
       Student.findOne({ where: { id: req.params.id } }).then((student) => {
-         log.info('User is found with same id');
-         res.json({
-            status: true,
-            data: student,
-         });
+         if (student) {
+            log.info('User is found with same id');
+            res.json({
+               status: true,
+               data: student,
+            });
+         } else {
+            log.warn('User is not found with same id');
+            res.status(404).json({
+               status: false,
+               errors: 'User is not found with same id',
+            });
+         }
       });
    } catch (errors) {
       log.warn('catch function is called');
       log.error(errors);
       res.status(500).json({
          status: false,
-         errors,
+         errors: 'Internal Server Error',
       });
    }
 });
@@ -98,44 +114,39 @@ router.post(
 
       try {
          let body = req.body;
-
          // Function to check if email or First Name already exists:
-         function handleCheck(req, res, data) {
+         function handleCheck(data) {
             if (data.length === 0) {
-               log.info('Email or First Name does not exist');
+               log.info('Email or Mobile Number does not exist');
                Student.create(body).then(
                   log.info('User created successfully'),
                   res.json({
                      status: true,
-                     msg: 'Student created successfully',
+                     msg: 'User created successfully',
                   })
                );
             } else {
-               log.warn('Email or First Name already exists');
+               log.warn('Email or Mobile Number already exists');
                res.status(400).json({
                   status: false,
-                  error: 'Student name or email already exists!',
+                  errors: 'Mobile Number or Email id already exists!',
                });
             }
          }
          //
          Student.findAll({
             where: {
-               [Op.or]: [
-                  { email: body.email },
-                  { first_name: body.first_name },
-               ],
+               [Op.or]: [{ mobile: body.mobile }, { email: body.email }],
             },
          }).then((data) => {
-            handleCheck(req, res, data);
+            handleCheck(data);
          });
-      } catch (error) {
+      } catch (errors) {
          log.warn('catch function is called');
-         log.error(error);
-         console.log(error);
+         log.error(errors);
          res.status(400).json({
             status: false,
-            errors: error,
+            errors: 'Internal Server Error',
          });
       }
    }
@@ -184,7 +195,7 @@ router.put(
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
          log.warn('Validation errors are found');
-         log.error(errors);
+         log.error({ errors: errors.array() });
          return res.status(400).json({ status: false, errors: errors.array() });
       }
       try {
@@ -193,15 +204,16 @@ router.put(
             where: {
                [Op.and]: [
                   { email: body.email },
+                  { mobile: body.mobile },
                   { [Op.not]: { id: req.params.id } },
                ],
             },
          }).then((data) => {
             if (data.length > 0) {
-               log.warn('Email already exists');
+               log.warn('Email or Mobile Number already exists');
                return res.status(400).json({
                   status: false,
-                  errors: 'user with same email already exists',
+                  errors: 'User with same Email address already exists',
                });
             } else {
                log.info('User with same email not found');
@@ -210,10 +222,13 @@ router.put(
                res.json({ status: true, msg: 'Student updated successfully' });
             }
          });
-      } catch (error) {
+      } catch (errors) {
          log.warn('catch function is called');
-         log.error(error);
-         console.log(errors);
+         log.error(errors);
+         res.status(400).json({
+            status: false,
+            errors: 'Internal Server Error',
+         });
       }
    }
 );
@@ -227,12 +242,12 @@ router.delete('/:id', (req, res) => {
             res.json({ status: true, msg: 'Student deleted successfully' }),
             log.info('User deleted successfully')
          );
-   } catch (error) {
+   } catch (errors) {
       log.warn('catch function is called');
-      log.error(error);
+      log.error(errors);
       res.status(400).json({
          status: false,
-         errors: error,
+         errors: 'Internal Server Error',
       });
    }
 });

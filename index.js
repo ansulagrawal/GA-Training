@@ -13,6 +13,7 @@ const db = require('./models');
 
 // Routes:
 app.use('/api/v1/student', require('./routes/student'));
+app.use('/api/v1/functionCall', require('./routes/functionCall'));
 
 db.sequelize.sync().then((req) => {
    app.listen(PORT, () => {
