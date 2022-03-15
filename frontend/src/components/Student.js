@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { nanoid } from 'nanoid';
 import StudentTable from './StudentTable';
 import TableSearch from './TableSearch';
 import data from '../mock-data.json';
 import AddStudent from './AddStudent';
+import { useNavigate } from 'react-router-dom';
 
 const colNames = [
   'id',
@@ -15,7 +16,14 @@ const colNames = [
   'dob',
 ];
 
-const Student = ({ userDetails }) => {
+const Student = ({ userDetails, isLogin, setIsLogin }) => {
+  let navigate = useNavigate();
+  useEffect(() => {
+    {
+      isLogin !== true && navigate('/login');
+    }
+  }, [isLogin]);
+
   const [students, setStudents] = useState(data);
   const [modalType, setModalType] = useState('');
   const [serchStudents, setSerchStudents] = useState(students);

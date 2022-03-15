@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const Profile = ({ userDetails }) => {
+const Profile = ({ userDetails, isLogin, setIsLogin }) => {
+  let id = useParams();
+  let navigate = useNavigate();
+  useEffect(() => {
+    {
+      isLogin !== true && navigate('/login');
+    }
+  }, [isLogin]);
+
   return (
-    <div>
+    <>
       <section className='vh-100' style={{ backgroundColor: '#f4f5f7' }}>
         <div className='container py-5 h-100'>
           <div className='row d-flex justify-content-center align-items-center h-100'>
@@ -69,7 +78,7 @@ const Profile = ({ userDetails }) => {
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 };
 

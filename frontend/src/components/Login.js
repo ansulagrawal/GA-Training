@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Button } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 import { validateEmail, validatePassword } from '../helperFunction';
 
-const Login = () => {
+const Login = ({ isLogin, setIsLogin }) => {
+  let navigate = useNavigate();
+  useEffect(() => {
+    {
+      isLogin === true && navigate('/student');
+    }
+  }, [isLogin]);
   const [passwordShow, setPasswordShow] = useState(false);
   const [valEmail, setValEmail] = useState('');
   const [valPassword, setValPassword] = useState('');
@@ -73,18 +80,18 @@ const Login = () => {
         </div>
       </div>
       <div className='button-container'>
-        <Link to='/student'>
-          <button
-            type='submit'
-            className='btn btn-primary'
-            disabled={
-              validatePassword(valPassword) && validateEmail(valEmail)
-                ? false
-                : true
-            }
-          >
-            Submit
-          </button>
+        <Link
+          className={`btn ${
+            validatePassword(valPassword) && validateEmail(valEmail)
+              ? 'notDisabled btn-primary '
+              : 'disabledCursor btn-light'
+          }`}
+          to='/student'
+          onClick={() => {
+            setIsLogin(true);
+          }}
+        >
+          Login
         </Link>
       </div>
     </div>

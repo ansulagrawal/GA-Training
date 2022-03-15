@@ -46,7 +46,7 @@ const StudentTable = ({
                     <td key={index2}>{val}</td>
                   ))}
                   <td key='999'>
-                    <Link to='/student/profile'>
+                    <Link to={`/student/${student.id}`}>
                       <button
                         className='border-0 bg-transparent'
                         onClick={() => {

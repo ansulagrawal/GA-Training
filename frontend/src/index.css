@@ -30,3 +30,7 @@ code {
     rgba(253, 160, 133, 1)
   );
 }
+
+.disabledCursor {
+  pointer-events: none;
+}
