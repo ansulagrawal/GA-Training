@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-const Profile = ({ userDetails, isLogin, setIsLogin }) => {
-  let id = useParams();
+const Profile = ({ userDetails, isLogin }) => {
+  // let id = useParams();
   let navigate = useNavigate();
   useEffect(() => {
     {

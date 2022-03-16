@@ -5,6 +5,9 @@ import TableSearch from './TableSearch';
 import data from '../mock-data.json';
 import AddStudent from './AddStudent';
 import { useNavigate } from 'react-router-dom';
+import CSVCreator from './CSVCreator';
+import * as XLSX from 'xlsx';
+import CSVUpload from './CSVUpload';
 
 const colNames = [
   'id',
@@ -16,7 +19,7 @@ const colNames = [
   'dob',
 ];
 
-const Student = ({ userDetails, isLogin, setIsLogin }) => {
+const Student = ({ userDetails, isLogin }) => {
   let navigate = useNavigate();
   useEffect(() => {
     {
@@ -27,7 +30,8 @@ const Student = ({ userDetails, isLogin, setIsLogin }) => {
   const [students, setStudents] = useState(data);
   const [modalType, setModalType] = useState('');
   const [serchStudents, setSerchStudents] = useState(students);
-
+  // const [csvData, setCsvData] = useState([]);
+  // const [csvColumn, setCsvColumn] = useState([]);
   const [addFormData, setAddFormData] = useState({
     id: '',
     first_name: '',
@@ -120,40 +124,93 @@ const Student = ({ userDetails, isLogin, setIsLogin }) => {
     setStudents(newStudents);
   };
 
+  const processData = (dataString) => {
+    const dataStringLines = dataString.split(/\r\n|\n/);
+    const headers = dataStringLines[0].split(/,(?![^"]"(?:(?:[^"]"){2})[^"]$)/);
+
+    const list = [];
+    for (let i = 1; i < dataStringLines.length; i++) {
+      const row = dataStringLines[i].split(/,(?![^"]"(?:(?:[^"]"){2})[^"]$)/);
+      if (headers && row.length === headers.length) {
+        const obj = {};
+        for (let j = 0; j < headers.length; j++) {
+          let d = row[j];
+          if (d.length > 0) {
+            if (d[0] === '"') d = d.substring(1, d.length - 1);
+            if (d[d.length - 1] === '"') d = d.substring(d.length - 2, 1);
+          }
+          if (headers[j]) {
+            obj[headers[j]] = d;
+          }
+        }
+        // remove the blank rows
+        if (Object.values(obj).filter((x) => x).length > 0) {
+          list.push(obj);
+        }
+      }
+    }
+
+    const newStudent = [...students, ...list];
+    setStudents(newStudent);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      /* Parse data */
+      const bstr = evt.target.result;
+      const wb = XLSX.read(bstr, { type: 'binary' });
+      /* Get first worksheet */
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      /* Convert array of arrays */
+      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
+      processData(data);
+    };
+    reader.readAsBinaryString(file);
+  };
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        margin: '20vh auto',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        width: '95%',
-      }}
-    >
-      <div className='d-flex justify-content-end'>
-        <AddStudent
-          modalType={modalType}
-          updateModalType={setModalType}
-          handleAddFormChange={handleAddFormChange}
-        />
-        <TableSearch data={students} updateList={setSerchStudents} />
+    <>
+      <div className='container'>
+        <CSVUpload handleFileUpload={handleFileUpload} />
       </div>
-      <StudentTable
-        list={serchStudents}
-        colNames={colNames}
-        updateDetails={setStudents}
-        handleEdit={handleEdit}
-        editData={editFormData}
-        editOnChange={handleEditFormChange}
-        editFormSumbit={handleEditFromSumbit}
-        handleDelete={handleDelete}
-        userDetails={userDetails}
-        modalType={modalType}
-        addOnChange={handleAddFormChange}
-        addFormSumbit={handleAddFormSubmit}
-        addData={addFormData}
-      />
-    </div>
+      <div
+        style={{
+          display: 'flex',
+          margin: '20vh auto',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          width: '95%',
+        }}
+      >
+        <div className='d-flex justify-content-end'>
+          <CSVCreator data={students} />
+          <AddStudent
+            modalType={modalType}
+            updateModalType={setModalType}
+            handleAddFormChange={handleAddFormChange}
+          />
+          <TableSearch data={students} updateList={setSerchStudents} />
+        </div>
+        <StudentTable
+          list={serchStudents}
+          colNames={colNames}
+          updateDetails={setStudents}
+          handleEdit={handleEdit}
+          editData={editFormData}
+          editOnChange={handleEditFormChange}
+          editFormSumbit={handleEditFromSumbit}
+          handleDelete={handleDelete}
+          userDetails={userDetails}
+          modalType={modalType}
+          addOnChange={handleAddFormChange}
+          addFormSumbit={handleAddFormSubmit}
+          addData={addFormData}
+        />
+      </div>
+    </>
   );
 };
 
