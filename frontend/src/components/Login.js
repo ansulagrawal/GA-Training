@@ -7,7 +7,7 @@ const Login = ({ isLogin, setIsLogin }) => {
   let navigate = useNavigate();
   useEffect(() => {
     {
-      isLogin === true && navigate('/student');
+      isLogin === true ? navigate('/student') : navigate('/login');
     }
   }, [isLogin]);
   const [passwordShow, setPasswordShow] = useState(false);

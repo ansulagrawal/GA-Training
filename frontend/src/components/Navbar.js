@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const Nav = ({ isLogin, setIsLogin }) => {
+const Navbar = ({ isLogin, setIsLogin }) => {
   return (
     <>
       <nav className='navbar navbar-expand-lg navbar-light bg-light'>
@@ -34,4 +34,4 @@ const Nav = ({ isLogin, setIsLogin }) => {
   );
 };
 
-export default Nav;
+export default Navbar;
