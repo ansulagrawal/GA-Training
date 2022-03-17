@@ -30,8 +30,6 @@ const Student = ({ userDetails, isLogin }) => {
   const [students, setStudents] = useState(data);
   const [modalType, setModalType] = useState('');
   const [serchStudents, setSerchStudents] = useState(students);
-  // const [csvData, setCsvData] = useState([]);
-  // const [csvColumn, setCsvColumn] = useState([]);
   const [addFormData, setAddFormData] = useState({
     id: '',
     first_name: '',
@@ -179,7 +177,7 @@ const Student = ({ userDetails, isLogin }) => {
       <div
         style={{
           display: 'flex',
-          margin: '20vh auto',
+          margin: '10vh auto',
           flexDirection: 'column',
           justifyContent: 'center',
           width: '95%',
