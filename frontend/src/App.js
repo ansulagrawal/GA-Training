@@ -4,6 +4,7 @@ import Login from './components/Login';
 import Student from './components/Student';
 import Profile from './components/Profile';
 import Navbar from './components/Navbar';
+import axios from 'axios';
 
 const App = () => {
   const [studentDetails, setStudentDetails] = useState('');

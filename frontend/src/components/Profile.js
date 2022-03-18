@@ -46,8 +46,8 @@ const Profile = ({ userDetails, isLogin }) => {
                           <p className='text-muted'>{userDetails.email}</p>
                         </div>
                         <div className='col-6 mb-3'>
-                          <h6>Phone</h6>
-                          <p className='text-muted'>{userDetails.phone}</p>
+                          <h6>mobile</h6>
+                          <p className='text-muted'>{userDetails.mobile}</p>
                         </div>
                         <div className='col-6 mb-3'>
                           <h6>Date of Birth</h6>

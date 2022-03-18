@@ -56,7 +56,7 @@ const Modal = ({
                             ? 'date'
                             : colName === 'email'
                             ? 'email'
-                            : colName === 'phone'
+                            : colName === 'mobile'
                             ? 'number'
                             : 'text'
                         }`}

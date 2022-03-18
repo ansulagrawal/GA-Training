@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { nanoid } from 'nanoid';
 import StudentTable from './StudentTable';
 import TableSearch from './TableSearch';
-import data from '../mock-data.json';
+// import data from '../mock-data.json';
 import AddStudent from './AddStudent';
 import { useNavigate } from 'react-router-dom';
 import CSVCreator from './CSVCreator';
 import * as XLSX from 'xlsx';
 import CSVUpload from './CSVUpload';
+const axios = require('axios').default;
 
 const colNames = [
   'id',
   'first_name',
   'last_name',
   'email',
-  'phone',
+  'mobile',
   'address',
   'dob',
 ];
@@ -26,8 +26,21 @@ const Student = ({ userDetails, isLogin }) => {
       isLogin !== true && navigate('/login');
     }
   }, [isLogin]);
+  const initialStudent = [];
+  const [students, setStudents] = useState(initialStudent);
 
-  const [students, setStudents] = useState(data);
+  const host = process.env.REACT_APP_HOST;
+  const getAllUser = () => {
+    console.log('Get all user called');
+    axios.get(`${host}/student`).then((res) => {
+      setStudents(res.data.data);
+      console.log(res);
+    });
+  };
+  useEffect(() => {
+    getAllUser();
+  }, []);
+
   const [modalType, setModalType] = useState('');
   const [serchStudents, setSerchStudents] = useState(students);
   const [addFormData, setAddFormData] = useState({
@@ -35,7 +48,7 @@ const Student = ({ userDetails, isLogin }) => {
     first_name: '',
     last_name: '',
     email: '',
-    phone: '',
+    mobile: '',
     address: '',
     dob: '',
   });
@@ -45,7 +58,7 @@ const Student = ({ userDetails, isLogin }) => {
     first_name: '',
     last_name: '',
     email: '',
-    phone: '',
+    mobile: '',
     address: '',
     dob: '',
   });
@@ -75,7 +88,7 @@ const Student = ({ userDetails, isLogin }) => {
       first_name: editFormData.first_name,
       last_name: editFormData.last_name,
       email: editFormData.email,
-      phone: editFormData.phone,
+      mobile: editFormData.mobile,
       address: editFormData.address,
       dob: editFormData.dob,
     };
@@ -94,9 +107,15 @@ const Student = ({ userDetails, isLogin }) => {
   const handleDelete = (e, stud) => {
     e.preventDefault();
     const newStudents = [...students];
-    const index = students.findIndex((student) => student.id === stud.id);
-    newStudents.splice(index, 1);
-    setStudents(newStudents);
+    // console.log('id', stud.id);
+    axios.delete(`${host}/student/${stud.id}`).then((res) => {
+      console.log(res);
+    });
+    getAllUser();
+    // const index = students.findIndex((student) => student.id === stud.id);
+    // console.log(index);
+    // newStudents.splice(index, 1);
+    // setStudents(newStudents);
   };
   const handleAddFormChange = (e) => {
     e.preventDefault();
@@ -110,16 +129,33 @@ const Student = ({ userDetails, isLogin }) => {
   const handleAddFormSubmit = (e) => {
     e.preventDefault();
     const newStudent = {
-      id: nanoid(),
       first_name: addFormData.first_name,
       last_name: addFormData.last_name,
       email: addFormData.email,
-      phone: addFormData.phone,
-      address: addFormData.address,
+      mobile: addFormData.mobile,
       dob: addFormData.dob,
+      address: addFormData.address,
     };
-    const newStudents = [...students, newStudent];
-    setStudents(newStudents);
+    console.log(newStudent);
+    try {
+      axios
+        .post(`${host}/student`, {
+          first_name: addFormData.first_name,
+          last_name: addFormData.last_name,
+          email: addFormData.email,
+          mobile: addFormData.mobile,
+          dob: addFormData.dob,
+          address: addFormData.address,
+        })
+        .then((res) => {
+          // console.log(res);
+          // console.log(res.data);
+          getAllUser();
+        });
+    } catch (error) {
+      console.log(error);
+    }
+    getAllUser();
   };
 
   const processData = (dataString) => {
@@ -171,6 +207,7 @@ const Student = ({ userDetails, isLogin }) => {
 
   return (
     <>
+      {/* {getUser()} */}
       <div className='container'>
         <CSVUpload handleFileUpload={handleFileUpload} />
       </div>

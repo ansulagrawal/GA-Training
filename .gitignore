@@ -4,6 +4,7 @@
 node_modules
 /.pnp
 .pnp.js
+logs
 
 # testing
 /coverage
@@ -23,4 +24,5 @@ yarn-debug.log*
 yarn-error.log*
 compile-powershell
 pacakage-installs
-/logs
+.env
+backend/logs
