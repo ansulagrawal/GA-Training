@@ -38,29 +38,29 @@ export const validatePassword = (password) => {
   }
 };
 
-export const objectToCSV = (data) => {
-  const csvRows = [];
-  const header = Object.keys(data[0]);
-  csvRows.push(header.join(','));
+// export const objectToCSV = (data) => {
+//   const csvRows = [];
+//   const header = Object.keys(data[0]);
+//   csvRows.push(header.join(','));
 
-  for (const row of data) {
-    const values = header.map((header) => {
-      const escaped = ('' + row[header]).replace(/"/g, '\\g"');
-      return `"${escaped}"`;
-    });
-    csvRows.push(values.join(','));
-  }
-  return csvRows.join('\n');
-};
+//   for (const row of data) {
+//     const values = header.map((header) => {
+//       const escaped = ('' + row[header]).replace(/"/g, '\\g"');
+//       return `"${escaped}"`;
+//     });
+//     csvRows.push(values.join(','));
+//   }
+//   return csvRows.join('\n');
+// };
 
-export const downloadCSV = (data) => {
-  const blob = new Blob([data], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.setAttribute('hidden', '');
-  a.setAttribute('href', url);
-  a.setAttribute('download', 'download.csv');
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-};
+// export const downloadCSV = (data) => {
+//   const blob = new Blob([data], { type: 'text/csv' });
+//   const url = window.URL.createObjectURL(blob);
+//   const a = document.createElement('a');
+//   a.setAttribute('hidden', '');
+//   a.setAttribute('href', url);
+//   a.setAttribute('download', 'download.csv');
+//   document.body.appendChild(a);
+//   a.click();
+//   document.body.removeChild(a);
+// };
