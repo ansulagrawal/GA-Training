@@ -1,71 +1,63 @@
-import React, { useEffect, useState } from 'react';
-import StudentTable from './StudentTable';
-import TableSearch from './TableSearch';
-// import data from '../mock-data.json';
-import AddStudent from './AddStudent';
-import { useNavigate } from 'react-router-dom';
-import CSVCreator from './CSVCreator';
-import * as XLSX from 'xlsx';
-import CSVUpload from './CSVUpload';
-const axios = require('axios').default;
+import React, { useEffect, useState } from "react";
+import StudentTable from "./StudentTable";
+import TableSearch from "./TableSearch";
+import AddStudent from "./AddStudent";
+import { useNavigate } from "react-router-dom";
+import CSVCreator from "./CSVCreator";
+import * as XLSX from "xlsx";
+import CSVUpload from "./CSVUpload";
+const axios = require("axios").default;
 
-const colNames = [
-  'id',
-  'first_name',
-  'last_name',
-  'email',
-  'mobile',
-  'address',
-  'dob',
-];
+const colNames = ["id", "first_name", "last_name", "email", "mobile", "address", "dob"];
 
 const Student = ({ userDetails, isLogin }) => {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
+
   useEffect(() => {
-    {
-      isLogin !== true && navigate('/login');
-    }
+    isLogin !== true && navigate("/login");
   }, [isLogin]);
+
   const initialStudent = [];
   const [students, setStudents] = useState(initialStudent);
 
   const host = process.env.REACT_APP_HOST;
   const getAllUser = () => {
-    console.log('Get all user called');
+    console.log("Get all user called");
     axios.get(`${host}/student`).then((res) => {
       setStudents(res.data.data);
       console.log(res);
     });
   };
+  
   useEffect(() => {
     getAllUser();
   }, []);
 
-  const [modalType, setModalType] = useState('');
+  const [modalType, setModalType] = useState("");
   const [serchStudents, setSerchStudents] = useState(students);
   const [addFormData, setAddFormData] = useState({
-    id: '',
-    first_name: '',
-    last_name: '',
-    email: '',
-    mobile: '',
-    address: '',
-    dob: '',
+    id: "",
+    first_name: "",
+    last_name: "",
+    email: "",
+    mobile: "",
+    address: "",
+    dob: "",
   });
 
   const [editFormData, setEditFormData] = useState({
-    id: '',
-    first_name: '',
-    last_name: '',
-    email: '',
-    mobile: '',
-    address: '',
-    dob: '',
+    id: "",
+    first_name: "",
+    last_name: "",
+    email: "",
+    mobile: "",
+    address: "",
+    dob: "",
   });
 
   const handleEdit = (e, student) => {
     e.preventDefault();
-    setModalType('edit');
+    setModalType("edit");
     const formValues = student;
     setEditFormData(formValues);
   };
@@ -95,9 +87,7 @@ const Student = ({ userDetails, isLogin }) => {
 
     const newStudents = [...students];
 
-    const index = students.findIndex(
-      (student) => student.id === editFormData.id
-    );
+    const index = students.findIndex((student) => student.id === editFormData.id);
 
     newStudents[index] = editedStudent;
 
@@ -106,7 +96,7 @@ const Student = ({ userDetails, isLogin }) => {
 
   const handleDelete = (e, stud) => {
     e.preventDefault();
-    const newStudents = [...students];
+    // const newStudents = [...students];
     // console.log('id', stud.id);
     axios.delete(`${host}/student/${stud.id}`).then((res) => {
       console.log(res);
@@ -194,7 +184,7 @@ const Student = ({ userDetails, isLogin }) => {
     reader.onload = (evt) => {
       /* Parse data */
       const bstr = evt.target.result;
-      const wb = XLSX.read(bstr, { type: 'binary' });
+      const wb = XLSX.read(bstr, { type: "binary" });
       /* Get first worksheet */
       const wsname = wb.SheetNames[0];
       const ws = wb.Sheets[wsname];
@@ -208,25 +198,20 @@ const Student = ({ userDetails, isLogin }) => {
   return (
     <>
       {/* {getUser()} */}
-      <div className='container'>
+      <div className="container">
         <CSVUpload handleFileUpload={handleFileUpload} />
       </div>
       <div
         style={{
-          display: 'flex',
-          margin: '10vh auto',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          width: '95%',
-        }}
-      >
-        <div className='d-flex justify-content-end'>
+          display: "flex",
+          margin: "10vh auto",
+          flexDirection: "column",
+          justifyContent: "center",
+          width: "95%",
+        }}>
+        <div className="d-flex justify-content-end">
           <CSVCreator data={students} />
-          <AddStudent
-            modalType={modalType}
-            updateModalType={setModalType}
-            handleAddFormChange={handleAddFormChange}
-          />
+          <AddStudent modalType={modalType} updateModalType={setModalType} handleAddFormChange={handleAddFormChange} />
           <TableSearch data={students} updateList={setSerchStudents} />
         </div>
         <StudentTable

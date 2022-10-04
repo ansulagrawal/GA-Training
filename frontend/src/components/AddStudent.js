@@ -1,17 +1,16 @@
-import React from 'react';
+import React from "react";
 
 const AddStudent = ({ updateModalType }) => {
   return (
     <>
       <button
-        type='button'
-        className='btn btn-primary mb-3'
-        data-bs-toggle='modal'
-        data-bs-target='#staticBackdrop'
+        type="button"
+        className="btn btn-primary mb-3"
+        data-bs-toggle="modal"
+        data-bs-target="#staticBackdrop"
         onClick={() => {
-          updateModalType('add');
-        }}
-      >
+          updateModalType("add");
+        }}>
         Add Student
       </button>
     </>
